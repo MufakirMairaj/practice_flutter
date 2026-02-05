@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:practice_flutter/features/auth/presentation/pages/login_screen.dart';
-import 'package:practice_flutter/splash_screen.dart';
-
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/pages/sign_up_screen.dart';
+import 'features/home/presentation/pages/home_screen.dart';
 import 'injection_container.dart';
 
 void main() async {
@@ -14,6 +14,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -23,10 +24,11 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
-        home: const LoginScreen(),
+        home: LoginScreen(),
         routes: {
-          '/login': (_) => const LoginScreen(),
-          // '/home': (_) => const MyHomePage(title: 'Flutter Demo Home Page'),
+          '/login': (_) => LoginScreen(),
+          '/signup': (_) => SignupScreen(),
+          '/home': (_) => const HomeScreen(),
         },
       ),
     );

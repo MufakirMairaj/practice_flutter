@@ -1,40 +1,77 @@
+import 'package:equatable/equatable.dart';
 import '../../domain/entities/user_entity.dart';
 
-abstract class AuthState {}
+import 'package:equatable/equatable.dart';
+import '../../domain/entities/user_entity.dart';
 
-class AuthInitial extends AuthState {}
+abstract class AuthState extends Equatable {
+  const AuthState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
 
 class AuthLoading extends AuthState {
   final AuthAction action;
-  AuthLoading(this.action);
+  const AuthLoading(this.action);
+
+  @override
+  List<Object?> get props => [action];
 }
 
 class AuthSuccess extends AuthState {
   final UserEntity user;
-  AuthSuccess(this.user);
+  final AuthAction action;
+  const AuthSuccess(this.user, this.action);
+
+  @override
+  List<Object?> get props => [user, action];
 }
 
 class AuthMessage extends AuthState {
   final String message;
-  AuthMessage(this.message);
+  const AuthMessage(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 class AuthError extends AuthState {
   final String error;
-  AuthError(this.error);
+  final AuthAction action;
+  const AuthError(this.error, this.action);
+
+  @override
+  List<Object?> get props => [error, action];
 }
 
-class AuthEmailInvalid extends AuthState {}
-
-class AuthEmailValid extends AuthState {}
-
-class AuthNameInvalid extends AuthState {}
-
-class AuthNameValid extends AuthState {}
-
-enum AuthAction {
-  login,
-  register,
-  forgotPassword,
-  socialLogin,
+class AuthEmailInvalid extends AuthState {
+  const AuthEmailInvalid();
 }
+
+class AuthEmailValid extends AuthState {
+  const AuthEmailValid();
+}
+
+class AuthNameInvalid extends AuthState {
+  const AuthNameInvalid();
+}
+
+class AuthNameValid extends AuthState {
+  const AuthNameValid();
+}
+
+class AuthFormState extends AuthState {
+  final bool isButtonEnabled;
+
+  const AuthFormState({required this.isButtonEnabled});
+
+  @override
+  List<Object?> get props => [isButtonEnabled];
+}
+
+enum AuthAction { login, register, forgotPassword, socialLogin }

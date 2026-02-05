@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:practice_flutter/features/auth/domain/usecases/login_usecase.dart';
 import 'package:practice_flutter/features/auth/domain/usecases/register_usecase.dart'
     show RegisterUseCase, RegisterParams;
 import 'package:practice_flutter/features/auth/presentation/bloc/auth_event.dart';
@@ -7,6 +6,8 @@ import 'package:practice_flutter/features/auth/presentation/bloc/auth_state.dart
 
 import '../../domain/usecases/forgot_password_usecase.dart';
 import '../../domain/usecases/social_login_usecase.dart' hide LoginParams;
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase login;
@@ -19,38 +20,63 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.register,
     required this.forgot,
     required this.social,
-  }) : super(AuthInitial()) {
+  }) : super(const AuthInitial()) {
+    // Email input validation
+    on<LoginInputChanged>((event, emit) {
+      final isEnabled =
+          event.email.trim().isNotEmpty && event.password.trim().isNotEmpty;
 
-    on<EmailChangedEvent>((event, emit) {
-      final isValid = RegExp(
-        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-      ).hasMatch(event.email);
+      emit(AuthFormState(isButtonEnabled: isEnabled));
+    });
 
-      if (isValid || event.email.isEmpty) {
-        emit(AuthEmailValid());
-      } else {
-        emit(AuthEmailInvalid());
+    // Login
+    on<LoginEvent>((event, emit) async {
+      if (event.email.trim().isEmpty || event.password.trim().isEmpty) {
+        emit(const AuthError("Email or password cannot be empty", AuthAction.login));
+        return;
       }
 
+      emit(const AuthLoading(AuthAction.login));
+      try {
+        final user = await login(LoginParams(event.email, event.password));
+        emit(AuthSuccess(user, AuthAction.login));
+      } catch (e) {
+        emit(AuthError(e.toString(), AuthAction.login));
+      }
     });
 
-    on<LoginEvent>((event, emit) async {
-      emit(AuthLoading(AuthAction.login));
-      final user = await login(LoginParams(event.email, event.password));
-      emit(AuthSuccess(user));
-    });
-
+    // Register
     on<RegisterEvent>((event, emit) async {
-      emit(AuthLoading(AuthAction.register));
-      await register(RegisterParams(event.email, event.password, event.name));
-      emit(AuthMessage("Reset link sent"));
+      emit(const AuthLoading(AuthAction.register));
+      try {
+        await register(RegisterParams(event.email, event.password, event.name));
+        emit(const AuthMessage("Registration successful"));
+      } catch (e) {
+        emit(AuthError(e.toString(), AuthAction.register));
+      }
     });
 
+    // Forgot password
     on<ForgotPasswordEvent>((event, emit) async {
-      emit(AuthLoading(AuthAction.forgotPassword));
-      await forgot(ForgetPasswordParams(event.email));
-      emit(AuthMessage("Reset link sent"));
+      emit(const AuthLoading(AuthAction.forgotPassword));
+      try {
+        await forgot(ForgetPasswordParams(event.email));
+        emit(const AuthMessage("Reset link sent"));
+      } catch (e) {
+        emit(AuthError(e.toString(), AuthAction.forgotPassword));
+      }
     });
 
+    // Social login
+    on<SocialLoginEvent>((event, emit) async {
+      emit(const AuthLoading(AuthAction.socialLogin));
+      // try {
+      //   await social(event.provider);
+      //   emit(const AuthMessage("Social login successful"));
+      // } catch (e) {
+      //   emit(AuthError(e.toString(), AuthAction.socialLogin));
+      // }
+    });
   }
 }
+
