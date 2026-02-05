@@ -14,7 +14,9 @@ workflows:
       xcode: latest
     scripts:
       - name: Accept Android Licenses
-        script: yes | sdkmanager --licenses
+        script: |
+          # Use the absolute path to the sdkmanager
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Get Flutter packages
         script: flutter packages pub get
@@ -22,7 +24,6 @@ workflows:
       - name: Build Android APK (Release)
         script: |
           flutter build apk --release --build-number=$BUILD_NUMBER
-          # Renames the apk to include the build number for better organization
           mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/DoctorSummary_dev_build_$BUILD_NUMBER.apk
 
       - name: Build iOS (Release)
